@@ -1,0 +1,38 @@
+CAPI=2:
+name: opencores::fft:0.1
+description: OpenCores FFT Core
+
+filesets:
+    rtl:
+        files:
+            - bimpy.v
+            - bitreverse.v
+            - butterfly.v
+            - convround.v
+            - fftmain.v
+            - fftstage.v
+            - hwbfly.v
+            - ifftmain.v
+            - laststage.v
+            - longbimpy.v
+            - qtrstage.v
+            - windowfn.v
+        file_type: verilogSource
+
+targets:
+    default:
+        filesets: [rtl]
+    pickle:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fftmain]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001 -E]
+    verify:
+        default_tool: icarus
+        filesets: [rtl]
+        toplevel: [fftmain]
+        tools:
+            icarus:
+                iverilog_options: [-g 2001]
