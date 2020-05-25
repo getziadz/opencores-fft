@@ -7,7 +7,7 @@
 // Purpose:	This is the main module in the General Purpose FPGA FFT
 //		implementation.  As such, all other modules are subordinate
 //	to this one.  This module accomplish a fixed size Complex FFT on
-//	2048 data points.
+//	256 data points.
 //	The FFT is fully pipelined, and accepts as inputs one complex two's
 //	complement sample per clock.
 //
@@ -21,9 +21,9 @@
 //			will accept one complex input value, and produce
 //			one (possibly empty) complex output value.
 //	i_sample	The complex input sample.  This value is split
-//			into two two's complement numbers, 15 bits each, with
+//			into two two's complement numbers, 16 bits each, with
 //			the real portion in the high order bits, and the
-//			imaginary portion taking the bottom 15 bits.
+//			imaginary portion taking the bottom 16 bits.
 //	o_result	The output result, of the same format as i_sample,
 //			only having 21 bits for each of the real and imaginary
 //			components, leading to 42 bits total.
@@ -34,10 +34,10 @@
 // Arguments:	This file was computer generated using the following command
 //		line:
 //
-//		% ./fftgen -v -d ../rtl -f 2048 -1 -k 1 -p 0 -n 15 -a ../bench/cpp/fftsize.h
+//		% ./fftgen -v -d ../rtl -f 256 -1 -k 1 -p 0 -n 16 -a ../bench/cpp/fftsize.h
 //
 //	This core will use hardware accelerated multiplies (DSPs)
-//	for 0 of the 11 stages
+//	for 0 of the 8 stages
 //
 // Creator:	Dan Gisselquist, Ph.D.
 //		Gisselquist Technology, LLC
@@ -82,7 +82,7 @@ module fftmain(i_clk, i_reset, i_ce,
 	// changed.  (These values can be adjusted by running the core
 	// generator again.)  The reason is simply that these values have
 	// been hardwired into the core at several places.
-	localparam	IWIDTH=15, OWIDTH=21, LGWIDTH=11;
+	localparam	IWIDTH=16, OWIDTH=21, LGWIDTH=8;
 	//
 	input	wire				i_clk, i_reset, i_ce;
 	//
@@ -96,77 +96,56 @@ module fftmain(i_clk, i_reset, i_ce,
 	wire	[(2*OWIDTH-1):0]	br_result;
 
 
-	wire		w_s2048;
-	wire	[31:0]	w_d2048;
-	fftstage	#(IWIDTH,IWIDTH+4,16,10,0,
-			0, 1, "cmem_2048.hex")
-		stage_2048(i_clk, i_reset, i_ce,
-			(!i_reset), i_sample, w_d2048, w_s2048);
-
-
-	wire		w_s1024;
-	wire	[33:0]	w_d1024;
-	fftstage	#(16,20,17,9,0,
-			0, 1, "cmem_1024.hex")
-		stage_1024(i_clk, i_reset, i_ce,
-			w_s2048, w_d2048, w_d1024, w_s1024);
-
-	wire		w_s512;
-	wire	[33:0]	w_d512;
-	fftstage	#(17,21,17,8,0,
-			0, 1, "cmem_512.hex")
-		stage_512(i_clk, i_reset, i_ce,
-			w_s1024, w_d1024, w_d512, w_s512);
-
 	wire		w_s256;
-	wire	[35:0]	w_d256;
-	fftstage	#(17,21,18,7,0,
+	wire	[33:0]	w_d256;
+	fftstage	#(IWIDTH,IWIDTH+4,17,7,0,
 			0, 1, "cmem_256.hex")
 		stage_256(i_clk, i_reset, i_ce,
-			w_s512, w_d512, w_d256, w_s256);
+			(!i_reset), i_sample, w_d256, w_s256);
+
 
 	wire		w_s128;
 	wire	[35:0]	w_d128;
-	fftstage	#(18,22,18,6,0,
+	fftstage	#(17,21,18,6,0,
 			0, 1, "cmem_128.hex")
 		stage_128(i_clk, i_reset, i_ce,
 			w_s256, w_d256, w_d128, w_s128);
 
 	wire		w_s64;
-	wire	[37:0]	w_d64;
-	fftstage	#(18,22,19,5,0,
+	wire	[35:0]	w_d64;
+	fftstage	#(18,22,18,5,0,
 			0, 1, "cmem_64.hex")
 		stage_64(i_clk, i_reset, i_ce,
 			w_s128, w_d128, w_d64, w_s64);
 
 	wire		w_s32;
 	wire	[37:0]	w_d32;
-	fftstage	#(19,23,19,4,0,
+	fftstage	#(18,22,19,4,0,
 			0, 1, "cmem_32.hex")
 		stage_32(i_clk, i_reset, i_ce,
 			w_s64, w_d64, w_d32, w_s32);
 
 	wire		w_s16;
-	wire	[39:0]	w_d16;
-	fftstage	#(19,23,20,3,0,
+	wire	[37:0]	w_d16;
+	fftstage	#(19,23,19,3,0,
 			0, 1, "cmem_16.hex")
 		stage_16(i_clk, i_reset, i_ce,
 			w_s32, w_d32, w_d16, w_s16);
 
 	wire		w_s8;
 	wire	[39:0]	w_d8;
-	fftstage	#(20,24,20,2,0,
+	fftstage	#(19,23,20,2,0,
 			0, 1, "cmem_8.hex")
 		stage_8(i_clk, i_reset, i_ce,
 			w_s16, w_d16, w_d8, w_s8);
 
 	wire		w_s4;
-	wire	[41:0]	w_d4;
-	qtrstage	#(20,21,11,0,0)	stage_4(i_clk, i_reset, i_ce,
+	wire	[39:0]	w_d4;
+	qtrstage	#(20,20,8,0,0)	stage_4(i_clk, i_reset, i_ce,
 						w_s8, w_d8, w_d4, w_s4);
 	wire		w_s2;
 	wire	[41:0]	w_d2;
-	laststage	#(21,21,0)	stage_2(i_clk, i_reset, i_ce,
+	laststage	#(20,21,1)	stage_2(i_clk, i_reset, i_ce,
 					w_s4, w_d4, w_d2, w_s2);
 
 
@@ -181,7 +160,7 @@ module fftmain(i_clk, i_reset, i_ce,
 	assign	br_start = r_br_started || w_s2;
 
 	// Now for the bit-reversal stage.
-	bitreverse	#(11,21)
+	bitreverse	#(8,21)
 		revstage(i_clk, i_reset,
 			(i_ce & br_start), w_d2,
 			br_result, br_sync);
