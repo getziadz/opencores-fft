@@ -18,10 +18,17 @@ filesets:
             - qtrstage.v
             - windowfn.v
         file_type: verilogSource
-
+    cmem:
+        files:
+            - cmem_256.hex : {copyto : cmem_256.hex} 
+            - cmem_128.hex : {copyto : cmem_128.hex} 
+            - cmem_64.hex  : {copyto : cmem_64.hex} 
+            - cmem_32.hex  : {copyto : cmem_32.hex} 
+            - cmem_16.hex  : {copyto : cmem_16.hex} 
+            - cmem_8.hex   : {copyto : cmem_8.hex} 
 targets:
     default:
-        filesets: [rtl]
+        filesets: [rtl,cmem]
     pickle:
         default_tool: icarus
         filesets: [rtl]
@@ -31,7 +38,7 @@ targets:
                 iverilog_options: [-g 2001 -E]
     verify:
         default_tool: icarus
-        filesets: [rtl]
+        filesets: [rtl,cmem]
         toplevel: [fftmain]
         tools:
             icarus:
