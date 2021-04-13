@@ -26,6 +26,7 @@ filesets:
             - cmem_32.hex  : {copyto : cmem_32.hex} 
             - cmem_16.hex  : {copyto : cmem_16.hex} 
             - cmem_8.hex   : {copyto : cmem_8.hex} 
+        file_type: user
 targets:
     default:
         filesets: [rtl,cmem]
